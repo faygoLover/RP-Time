@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "faygolover.rptime.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "rptime.refmap.json",
+  "mixins": [
+    "ServerLevelTimeMixin",
+    "SaplingBlockMixin",
+    "CropBlockAccess"
+  ],
+  "client": [
+    "ClientLevelTimeMixin",
+    "SignTextMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
