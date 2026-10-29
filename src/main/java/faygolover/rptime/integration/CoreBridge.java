@@ -12,6 +12,14 @@ import net.minecraftforge.common.MinecraftForge;
 final class CoreBridge {
     private CoreBridge() {}
 
+    /** Сообщить Core, что пауза и длина суток — наши (Core 0.11.0+). */
+    static void registerSource() {
+        RpCoreAPI.registerTimeSource(
+                () -> faygolover.rptime.server.TimeService.server() == null || !faygolover.rptime.server.TimeService.state().paused(),
+                running -> faygolover.rptime.server.TimeService.setPaused(!running),
+                faygolover.rptime.api.RpTimeAPI::dayLengthSeconds);
+    }
+
     static boolean timeRunning() {
         return RpCoreAPI.timeRunning();
     }

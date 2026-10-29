@@ -136,10 +136,15 @@ public final class TimeCommands {
 
     private static int pause(CommandContext<CommandSourceStack> c, boolean paused) {
         // С RP Core пауза одна на всех: /time pause = /rptime stop (солнце, раны, голод — всё стоит).
-        boolean viaCore = CoreLink.setTimeRunning(!paused);
-        TimeService.state().setPaused(!viaCore && paused);
-        TimeService.tick();
-        TimeService.refresh();
+        if (CoreLink.isSource()) {
+            // Core 0.11.0+: пауза наша, Core и все моды семейства читают её у нас.
+            TimeService.setPaused(paused);
+        } else {
+            boolean viaCore = CoreLink.setTimeRunning(!paused);
+            TimeService.state().setPaused(!viaCore && paused);
+            TimeService.tick();
+            TimeService.refresh();
+        }
         c.getSource().sendSuccess(() -> Component.translatable(paused ? "rptime.cmd.paused" : "rptime.cmd.resumed").withStyle(ChatFormatting.GOLD), true);
         return 1;
     }

@@ -112,6 +112,14 @@ public final class TimeService {
         return d > 0 ? d : TimeConfig.WHEAT_DAYS.get();
     }
 
+    /** Поставить или снять свою паузу (её же видит Core, если мы источник). */
+    public static void setPaused(boolean paused) {
+        if (server == null) return;
+        state().setPaused(paused);
+        tick();
+        refresh();
+    }
+
     /** Пересобрать сутки из конфига и мира, разослать клиентам. Звать после любой смены. */
     public static void refresh() {
         if (server == null) return;

@@ -43,5 +43,6 @@ public class RpTime {
 
     private void commonSetup(FMLCommonSetupEvent e) {
         TimeNetwork.register();
+        faygolover.rptime.integration.CoreLink.registerSource();
     }
 }

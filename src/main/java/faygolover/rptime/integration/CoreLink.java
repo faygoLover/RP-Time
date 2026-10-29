@@ -21,6 +21,27 @@ public final class CoreLink {
         return present;
     }
 
+    private static boolean source;
+
+    /**
+     * Стать источником времени для Core: пауза ({@code /time pause} = {@code /rptime stop}) и длина суток — наши,
+     * все моды семейства видят одну паузу. Старый Core (до 0.11.0) этого не умеет — тогда как раньше.
+     */
+    public static void registerSource() {
+        if (!present()) return;
+        try {
+            CoreBridge.registerSource();
+            source = true;
+        } catch (NoSuchMethodError | NoClassDefFoundError e) {
+            source = false;
+        }
+    }
+
+    /** Core берёт паузу у нас. */
+    public static boolean isSource() {
+        return source;
+    }
+
     /** Идёт ли время RP ({@code /rptime}). Без Core — всегда. */
     public static boolean timeRunning() {
         return !present() || CoreBridge.timeRunning();
