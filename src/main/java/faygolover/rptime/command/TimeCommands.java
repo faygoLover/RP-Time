@@ -26,14 +26,13 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 /**
  * Подкоманды к ванильной {@code /time} (её {@code set|add|query} не трогаем):
  * <ul>
- *   <li>{@code /time info} — который час, день, длины, скорость;</li>
- *   <li>{@code /time length day <длина> [night <длина>]}, {@code /time length night <длина>}, {@code /time length reset};</li>
- *   <li>{@code /time speed <множитель>|reset} — временно быстрее или медленнее, длины не меняются;</li>
- *   <li>{@code /time pause}, {@code /time resume} — с RP Core (механика {@code /rptime} включена) это и есть
+ *   <li>{@code /rptime info} — который час, день, длины, скорость;</li>
+ *   <li>{@code /rptime length day <длина> [night <длина>]}, {@code /rptime length night <длина>}, {@code /rptime length reset};</li>
+ *   <li>{@code /rptime speed <множитель>|reset} — временно быстрее или медленнее, длины не меняются;</li>
+ *   <li>{@code /rptime pause}, {@code /rptime resume} — с RP Core (механика {@code /rptime} включена) это и есть
  *   {@code /rptime stop|start};</li>
- *   <li>{@code /time sleep <длина>|reset} — сколько длится ночь, пока спят все;</li>
- *   <li>{@code /time growth <сутки>|reset} — за сколько игровых суток растёт пшеница;</li>
- *   <li>{@code /time exclude <игроки>|clear} — не считать до утра (неактивные держат ночь).</li>
+ *   <li>{@code /rptime sleep <длина>|reset} — сколько длится ночь, пока спят все;</li>
+ *   <li>{@code /rptime growth <сутки>|reset} — за сколько игровых суток растёт пшеница;</li>
  * </ul>
  * Всё меняется для мира и переживает перезапуск; значения по умолчанию — в {@code config/rptime-common.toml}.
  */
@@ -48,10 +47,11 @@ public final class TimeCommands {
             new SimpleCommandExceptionType(Component.translatable("rptime.cmd.bad_length"));
 
     public static void register(RegisterCommandsEvent e) {
-        // Узел «time» уже есть (ванильный, уровень прав 2) — brigadier добавит наши ветки к нему.
-        e.getDispatcher().register(Commands.literal("time").requires(s -> s.hasPermission(2))
-                .then(Commands.literal("info").executes(TimeCommands::info))
-                .then(Commands.literal("length")
+        // Всё время RP — в /rptime (решения 30.10); ванильный /time двигает только солнце. Ветки RP Core (add, set,
+        // sleep, player, pause/resume) brigadier сложит с нашими в один узел; права — на каждой ветке.
+        var root = Commands.literal("rptime")
+                .then(gm("info").executes(TimeCommands::info))
+                .then(gm("length")
                         .executes(TimeCommands::info)
                         .then(Commands.literal("day")
                                 .then(Commands.argument("day", StringArgumentType.word()).suggests((c, b) -> SharedSuggestionProvider.suggest(LENGTH_HINTS, b))
@@ -63,25 +63,29 @@ public final class TimeCommands {
                                 .then(Commands.argument("night", StringArgumentType.word()).suggests((c, b) -> SharedSuggestionProvider.suggest(LENGTH_HINTS, b))
                                         .executes(c -> length(c, false, true))))
                         .then(Commands.literal("reset").executes(TimeCommands::lengthReset)))
-                .then(Commands.literal("speed")
+                .then(gm("speed")
                         .then(Commands.literal("reset").executes(c -> speed(c, 1)))
                         .then(Commands.argument("multiplier", DoubleArgumentType.doubleArg(0.01, 1000))
                                 .executes(c -> speed(c, DoubleArgumentType.getDouble(c, "multiplier")))))
-                .then(Commands.literal("pause").executes(c -> pause(c, true)))
-                .then(Commands.literal("resume").executes(c -> pause(c, false)))
-                .then(Commands.literal("sleep")
+                .then(gm("night")
                         .executes(TimeCommands::info)
                         .then(Commands.literal("reset").executes(c -> sleep(c, -1)))
                         .then(Commands.argument("night", StringArgumentType.word()).suggests((c, b) -> SharedSuggestionProvider.suggest(new String[]{"3m", "5m", "2m", "1m"}, b))
                                 .executes(c -> sleep(c, parseLength(StringArgumentType.getString(c, "night"))))))
-                .then(Commands.literal("growth")
+                .then(gm("growth")
                         .executes(TimeCommands::info)
                         .then(Commands.literal("reset").executes(c -> growth(c, -1)))
                         .then(Commands.argument("days", DoubleArgumentType.doubleArg(0.05, 365))
-                                .executes(c -> growth(c, DoubleArgumentType.getDouble(c, "days")))))
-                .then(Commands.literal("exclude")
-                        .then(Commands.literal("clear").executes(TimeCommands::excludeClear))
-                        .then(Commands.argument("targets", EntityArgument.players()).executes(TimeCommands::exclude))));
+                                .executes(c -> growth(c, DoubleArgumentType.getDouble(c, "days")))));
+        // Пауза — у RP Core (/rptime pause|resume); без Core — своя.
+        if (!CoreLink.present()) root = root
+                .then(gm("pause").executes(c -> pause(c, true)))
+                .then(gm("resume").executes(c -> pause(c, false)));
+        e.getDispatcher().register(root);
+    }
+
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack> gm(String name) {
+        return Commands.literal(name).requires(s -> s.hasPermission(2));
     }
 
     private static int info(CommandContext<CommandSourceStack> c) {
@@ -164,20 +168,6 @@ public final class TimeCommands {
         return 1;
     }
 
-    private static int exclude(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
-        Collection<ServerPlayer> targets = EntityArgument.getPlayers(c, "targets");
-        for (ServerPlayer p : targets) {
-            SleepService.exclude(p);
-            c.getSource().sendSuccess(() -> Component.translatable("rptime.cmd.excluded", p.getDisplayName()).withStyle(ChatFormatting.GOLD), true);
-        }
-        return targets.size();
-    }
-
-    private static int excludeClear(CommandContext<CommandSourceStack> c) {
-        int n = SleepService.clearExcluded();
-        c.getSource().sendSuccess(() -> Component.translatable("rptime.cmd.exclude_cleared", n).withStyle(ChatFormatting.GOLD), true);
-        return n;
-    }
 
     private static long parseLength(String text) throws CommandSyntaxException {
         double seconds = Durations.parseSeconds(text);

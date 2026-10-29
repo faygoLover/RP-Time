@@ -4,9 +4,9 @@
   "rptime.info.now": "It is %s, day %s — %s.",
   "rptime.info.lengths": "Day %s, night %s (%s).",
   "rptime.info.from_config": "from config",
-  "rptime.info.from_world": "set by command, reset with /time length reset",
+  "rptime.info.from_world": "set by command, reset with /rptime length reset",
   "rptime.info.speed": "Speed %s.",
-  "rptime.info.paused": "Time is paused — /time resume.",
+  "rptime.info.paused": "Time is paused — /rptime resume.",
   "rptime.info.daylight_off": "The doDaylightCycle rule is off — time stands still.",
   "rptime.cmd.bad_length": "Length must be from 10 seconds to a week: 2h, 90m, 1h30m, 45s or a number of hours.",
   "rptime.cmd.length_set": "Day now lasts %s, night %s.",
@@ -18,7 +18,7 @@
   "rptime.info.sleep_now": "everyone is asleep now",
   "rptime.info.sleep_idle": "when everyone sleeps",
   "rptime.info.growth": "Wheat grows in %s game days on average.",
-  "rptime.info.core_stopped": "RP time is stopped (/rptime) — the sun stands still too. Start it with /rptime start or /time resume.",
+  "rptime.info.core_stopped": "RP time is stopped (/rptime) — the sun stands still too. Start it with /rptime resume.",
   "rptime.cmd.sleep_set": "Night while asleep now lasts %s.",
   "rptime.cmd.growth_set": "Wheat now grows in %s game days on average.",
   "rptime.cmd.excluded": "%s is not counted for sleep until morning.",
@@ -26,6 +26,6 @@
   "rptime.sleep.status": "Sleeping: %s of %s",
   "rptime.sleep.all": "Everyone is asleep — the night goes faster",
   "rptime.sleep.inactive": "Everyone is asleep, inactive players hold the night:",
-  "rptime.sleep.exclude_button": "[Exclude for the night]",
-  "rptime.sleep.exclude_hover": "Do not count %s for sleep until morning"
+  "rptime.sleep.exclude_button": "[sleep till morning]",
+  "rptime.sleep.exclude_hover": "Suggest /rptime sleep set 6:00 — everyone sleeps till morning"
 }

@@ -147,7 +147,7 @@ public final class SleepService {
         for (ServerPlayer p : BLOCKERS) p.displayClientMessage(msg, true);
     }
 
-    /** Все спят, а ночь держат только неактивные — ГМам раз в минуту, с кнопкой «Исключить на ночь». */
+    /** Все спят, а ночь держат только неактивные — ГМам раз в минуту, с подсказкой «проспать до утра» ({@code /rptime sleep set 6:00}). */
     private static void notifyInactive(MinecraftServer server, boolean all) {
         if (all || SLEEPERS.isEmpty() || BLOCKERS.isEmpty()) {
             notifyTimer = 0;
@@ -169,7 +169,7 @@ public final class SleepService {
             msg.append(" ").append(Component.literal(name).withStyle(ChatFormatting.WHITE)).append(" ")
                     .append(Component.translatable("rptime.sleep.exclude_button").withStyle(Style.EMPTY
                             .withColor(ChatFormatting.GREEN).withUnderlined(true)
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/time exclude " + name))
+                            .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/rptime sleep set 6:00"))
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("rptime.sleep.exclude_hover", name)))));
         }
         for (ServerPlayer gm : server.getPlayerList().getPlayers()) {
