@@ -15,6 +15,9 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
 
+// Общие версии семейства: текущие jar-ы и версии модов из ../_family (python _family/family.py sync).
+if (file('../_family/family.gradle').exists()) apply from: '../_family/family.gradle'
+
 apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
