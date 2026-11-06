@@ -19,6 +19,11 @@ public final class RpTimeAPI {
         return (c.dayTicks() + c.nightTicks()) / 20.0;
     }
 
+    /** Множитель {@code /time speed} (1 — обычный ход), без паузы и без ускоренной ночи (её доносят события прокрутки). */
+    public static double speed() {
+        return TimeService.server() == null ? 1 : TimeService.state().speed();
+    }
+
     /** Идёт ли сейчас ускоренная ночь (спят все). */
     public static boolean nightAccelerated() {
         return SleepService.accelerating();

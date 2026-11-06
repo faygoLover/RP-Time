@@ -12,12 +12,17 @@ import net.minecraftforge.common.MinecraftForge;
 final class CoreBridge {
     private CoreBridge() {}
 
-    /** Сообщить Core, что пауза и длина суток — наши (Core 0.11.0+). */
+    /** Сообщить Core, что пауза, длина суток и скорость — наши (скорость — Core 0.13.0+, на старом без неё). */
     static void registerSource() {
-        RpCoreAPI.registerTimeSource(
-                () -> faygolover.rptime.server.TimeService.server() == null || !faygolover.rptime.server.TimeService.state().paused(),
-                running -> faygolover.rptime.server.TimeService.setPaused(!running),
-                faygolover.rptime.api.RpTimeAPI::dayLengthSeconds);
+        java.util.function.BooleanSupplier running =
+                () -> faygolover.rptime.server.TimeService.server() == null || !faygolover.rptime.server.TimeService.state().paused();
+        java.util.function.Consumer<Boolean> set = r -> faygolover.rptime.server.TimeService.setPaused(!r);
+        try {
+            RpCoreAPI.registerTimeSource(running, set, faygolover.rptime.api.RpTimeAPI::dayLengthSeconds,
+                    faygolover.rptime.api.RpTimeAPI::speed);
+        } catch (NoSuchMethodError old) {
+            RpCoreAPI.registerTimeSource(running, set, faygolover.rptime.api.RpTimeAPI::dayLengthSeconds);
+        }
     }
 
     static boolean timeRunning() {
